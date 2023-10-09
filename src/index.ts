@@ -49,12 +49,15 @@ const validateDevcardIdAsUUID = (devcard_id: string): boolean => {
 	try {
 		let devCardContent = ''
 
+		console.log('abc')
 		const devcard_id = core.getInput('devcard_id')
 		const token = core.getInput('token')
 		const branch = core.getInput('commit_branch')
 		const message = core.getInput('commit_message')
 		const filename = core.getInput('commit_filename')
-		const dryrun = core.getBooleanInput('dryrun')
+		const email = core.getInput('committer_email')
+		const name = core.getInput('committer_name')
+		const dryrun = false
 
 		// throw an error if filename is empty
 		if (!filename || filename.length === 0) {
@@ -103,6 +106,8 @@ const validateDevcardIdAsUUID = (devcard_id: string): boolean => {
 			message: message.replace(/[$][{]filename[}]/g, filename),
 			branch: branch || github.context.ref.replace(/^refs[/]heads[/]/, ''),
 			sha: undefined,
+			email: email,
+			name: name,
 		}
 
 		const octokit = github.getOctokit(token)
@@ -115,6 +120,7 @@ const validateDevcardIdAsUUID = (devcard_id: string): boolean => {
 
 		console.log('Using branch', committer.branch)
 
+		github.context.repo
 		//Create head branch if needed
 		try {
 			await octokit.rest.git.getRef({ ...github.context.repo, ref: `heads/${committer.branch}` })
@@ -177,6 +183,7 @@ const validateDevcardIdAsUUID = (devcard_id: string): boolean => {
 				message: committer.message,
 				content: fileContent.toString('base64'),
 				branch: committer.branch,
+				committer: { name: committer.name, email: committer.email },
 				...(committer.sha ? { sha: committer.sha } : {}),
 			})
 		}
